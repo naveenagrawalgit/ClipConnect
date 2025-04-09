@@ -1,0 +1,42 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules/
+
+# Environment variable files
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+
+# Cache files
+.cache/
+*.cache
+
+# Temporary files
+*.tmp
+*.temp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.jsproj
+
+# Coverage files
+coverage/
+
+# Others
+*.lock
