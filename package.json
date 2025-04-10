@@ -1,0 +1,28 @@
+{
+  "name": "clipconnect",
+  "version": "1.0.0",
+  "description": "clipconnect",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/naveenagrawalgit/ClipConnect.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/naveenagrawalgit/ClipConnect/issues"
+  },
+  "homepage": "https://github.com/naveenagrawalgit/ClipConnect#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "mongoose": "^8.13.2"
+  }
+}
