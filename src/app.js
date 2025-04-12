@@ -19,4 +19,15 @@ app.use(express.static("public")) // public folder for storing files and differe
 app.use(cookieParser())
 
 
-export default app
+//routes import
+
+import userRouter from "./routes/user.routes.js" //(imported default export from file) using default export which allows u to name whatever u want during import
+
+
+//routes declaration
+app.use("/api/v1/users", userRouter )
+
+
+
+
+export {app}
