@@ -10,13 +10,15 @@ import { User } from "../models/user.model.js"
         const user = await User.findById(userId)
 
         const accessToken = user.generateAccessToken()
-        const refereshToken =  user.generateRefreshToken()
+        const refreshToken =  user.generateRefreshToken()
 
+        console.log("---log inside  generateAccessAndRefereshTokens---",refreshToken,"logging refresh token value")
         // saving the refresh token inside of the user object which is going to be stored in mongodb
-        user.refereshToken = refereshToken
+        user.refreshToken = refreshToken
+
         await user.save({ validateBeforeSave: false })
         
-        return {accessToken, refereshToken}
+        return {accessToken, refreshToken}
         
     } catch (error) {
         throw new ApiError(500, "error while generating access and refresh token")
