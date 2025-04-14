@@ -4,6 +4,10 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+import { generateAccessAndRefereshTokens } from "../utils/generateAccessAndRefereshTokens.js";
+
+
+
 const registerUser = asyncHandler (async (req,res)=> {
     //get data from frontend
     // validation - check if the data is valid
@@ -19,6 +23,7 @@ const registerUser = asyncHandler (async (req,res)=> {
     console.log( "-----",req.body,"data inside req.body")
     console.log("----",email + "email");
 
+    // checking if any field is left empty by user
     if([email,password,fullName,username].some((field)=> field?.trim()=== "")){
         throw new ApiError(400,"All fields are compulsary")
     }
@@ -26,6 +31,7 @@ const registerUser = asyncHandler (async (req,res)=> {
     // if(email.includes("@gmail.com")){ // koi bhi dikkat ho ye uadaien sabse pehle
     //     throw new ApiError(400,"only google mails allowed")// remove if doesn't works (only lets user upload a gmail type of error)
     // }
+
 
     // checking if there is an existing user with the same email or id
    const existedUser = await User.findOne({
@@ -43,8 +49,20 @@ const registerUser = asyncHandler (async (req,res)=> {
     // we get req.files form multer it gives access to files
     const avatarLocalPath = req.files?.avatar[0]?.path
 
-   
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+
+   // as coverImage is not compulsary so to avoid getting a null value in avatarLocalPath we are using below logic
+
+   // as in case if there is no coverimage cloudinary will replace it with empty string
+    let coverImageLocalPath;
+
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length >0){
+        coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    }
+
+
+
 
 // avatar local file missing
 if(!avatarLocalPath){
@@ -89,6 +107,104 @@ if(!avatar){
 
 })
  
-export {registerUser}
+
+const loginUser = asyncHandler(async( req,res) =>{
+
+    // get data from req.body form
+    //now check if the password and username sent by the user are authenti or not (will require a database call)
+    //if authentic then give access to  its data.
+    //generate access and refresh token
+     
+
+    const {email,username,password} = req.body
+
+    if(!username && !email){
+        throw new ApiError(400, "username or password is required")
+    }
+    // findOne() finds returns the first data which it finds relevent to the info passed
+    const user = await User.findOne({
+        $or:[{username},{email}]
+    })
+
+    if(!user){
+        throw new ApiError(404,"user does not exist")
+    }
+
+
+   //in this we are passing the password given by user in form to isPasswrodCorrect method. This method will compare the user and stored password if they are correct for authentication be password.
+
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if(!isPasswordValid){
+        throw new ApiError(401,"Password in not correct")
+    }
+
+
+    const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
+
+    console.log("----",accessToken, "ACCESS TOKEN VALUE")
+    console.log("----",refreshToken, "refreshToken  VALUE")
+
+   const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+   console.log("----",loggedInUser,"data inside loggedInUser")
+
+    // to make cookies modifiable only by server
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    // accesstoken cookie
+
+    return  res
+    .status(200)
+    .cookie("accessToken", accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
+    .json(
+        new ApiResponse(// setting constructor of ApiResponse
+            200,// status code in apiresponse
+            {
+                user: loggedInUser, accessToken, refreshToken// data value in apiresponse
+            },
+            "user logged in successfully"// message value
+            // value for status code will set automatically
+        )
+    )
+
+    
+
+})
+
+
+const logoutUser = asyncHandler(async(req,res) => {
+
+    await User.findByIdAndUpdate(
+        req.user._id,
+    {
+        $set:{
+            refreshToken: undefined
+        }
+    },
+    {
+        new: true
+    }
+
+    )
+    
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+    return res.status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {},"User logged out"))
+
+})
+
+
+
+export {registerUser, loginUser, logoutUser}
 
 
